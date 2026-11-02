@@ -47,6 +47,8 @@ readonly VENDORED_WAYLAND_SEAT_PATCH="$PROJECT_ROOT/third_party/winegdk-native5/
 readonly VENDORED_WAYLAND_SEAT_PATCH_SHA256="ed550ec1c78d581fbd21d25da429b9b37fb137e19df7128056cb2ec5340a5c59"
 readonly VENDORED_GAMING_SERVICES_PATCH="$PROJECT_ROOT/third_party/winegdk-native5/0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch"
 readonly VENDORED_GAMING_SERVICES_PATCH_SHA256="d43c0f2cf32b624bb12d6db890d6f9a3a45e72523837310d868bec78318f59ce"
+readonly VENDORED_EARLY_LOADER_PATCH="$PROJECT_ROOT/third_party/winegdk-native5/0013-ntdll-load-bol-early-dll.patch"
+readonly VENDORED_EARLY_LOADER_PATCH_SHA256="104674a86df89e54c5a06e1b54537dab39efbdd29bbbc6ca053de86f9307ac37"
 readonly SOURCE_SHA256SUMS="$PROJECT_ROOT/third_party/winegdk-native5/SOURCE-SHA256SUMS"
 readonly NTSYNC_UAPI_HEADER="$PROJECT_ROOT/third_party/linux-uapi/ntsync.h"
 readonly NTSYNC_UAPI_HEADER_SHA256="006437ee52a3e04f921df77081eb5c21c44c71f598b10ac534c6ef9e78296262"
@@ -221,6 +223,16 @@ git -C "$SRC" apply --check "$VENDORED_GAMING_SERVICES_PATCH" \
   || { echo "!! Gaming Services version patch does not apply" >&2; exit 1; }
 git -C "$SRC" apply "$VENDORED_GAMING_SERVICES_PATCH"
 
+echo "== Applying the BOL early-loader hook"
+[ -f "$VENDORED_EARLY_LOADER_PATCH" ] \
+  || { echo "!! missing BOL early-loader patch" >&2; exit 1; }
+[ "$(sha256sum "$VENDORED_EARLY_LOADER_PATCH" | cut -d' ' -f1)" = \
+  "$VENDORED_EARLY_LOADER_PATCH_SHA256" ] \
+  || { echo "!! BOL early-loader patch hash mismatch" >&2; exit 1; }
+git -C "$SRC" apply --check "$VENDORED_EARLY_LOADER_PATCH" \
+  || { echo "!! BOL early-loader patch does not apply" >&2; exit 1; }
+git -C "$SRC" apply "$VENDORED_EARLY_LOADER_PATCH"
+
 echo "== Verifying reviewed source hashes"
 [ -f "$SOURCE_SHA256SUMS" ] || { echo "!! missing SOURCE-SHA256SUMS" >&2; exit 1; }
 [ "$(sha256sum "$SOURCE_SHA256SUMS" | cut -d' ' -f1)" = \
@@ -238,6 +250,7 @@ echo "== Configuring + building WineGDK (i386 + x86_64)"
 # Wine's installed headers embed the builder's absolute source path and are not
 # runtime material; drop them so the prefix is relocatable + reproducible.
 rm -rf "$PREFIX/include"
+printf 'BOL_EARLY_DLL v1\n' > "$PREFIX/.bol-early-loader"
 
 # Fail closed if the in-process synchronization backend was compiled out. The
 # "/dev/ntsync" literal only survives when NTSYNC_IOC_EVENT_READ was defined,

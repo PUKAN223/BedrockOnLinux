@@ -44,3 +44,4 @@ b41ca1004dba8a0def7beca46e6fbd1208993d3dfe5f30cd1e2ac1b2afc4bfd3  include/window
 c49815d7224bce05751198dec519edd16a802d02d98965169a2fd4306fd7f0e3  include/xgame.idl
 0c13328d5632090729303a0f6bbd5b1276b134cc97311eff206de087a72fd3ba  include/xgameerr.h
 bc92e0b1871a199ba25fe22ae549d3ce2c36ab0e25cd091daea66a14c9669613  libs/uuid/uuid.c
+# 0013-ntdll-load-bol-early-dll.patch sha256: 104674a86df89e54c5a06e1b54537dab39efbdd29bbbc6ca053de86f9307ac37

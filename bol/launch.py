@@ -32,6 +32,7 @@ from . import (
     virtual_desktop,
     xodus,
 )
+from . import levilamina
 from .config import CONTENT, DATA, HOME, LOGS, WINEGDK_BUILD_REV
 from .deps import ensure_login_deps
 from .dgc import dgc_warning_message, intel_dgpus_on_legacy_driver
@@ -860,6 +861,13 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
         bump_stack_reserve(Path(exe))
     hide_signin_button(Path(gd))
     cmd, env = proton_umu_cmd(exe)
+    early_loader = None
+    early_loader_package = None
+    if s.get("levilamina_enabled", False):
+        package = (s.get("levilamina_package_path") or "").strip()
+        if not package:
+            die("LeviLamina early loading is enabled but no package folder is selected.")
+        early_loader_package = package
     # Required by the menu's indirect root-CBV updates (#27/#29/#30).
     _require_vkd3d_config(env, "force_raw_va_cbv")
     _configure_ray_tracing(env, s)
@@ -1055,6 +1063,14 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
     presence = discord.Session()
     xbl = xbl_presence.Session()
     try:
+        if early_loader_package:
+            # WineGDK must consume this narrowly-scoped variable before
+            # invoking the mapped PE entry point. It is never exported
+            # globally or passed to normal Wine applications.
+            levilamina.require_engine_support(proton_path())
+            early_loader = levilamina.stage(early_loader_package, CONTENT,
+                                             Path(gd))
+            env["BOL_EARLY_DLL"] = "Z:" + str(early_loader).replace("/", "\\\\")
         # From here until the teardown below has dealt with the marker, a
         # SIGTERM or SIGHUP waits for the game instead of killing the
         # launcher on the spot. Powering off with Minecraft open did that:
@@ -1174,6 +1190,12 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
                     ok("Minecraft is running — close the game window to come "
                        "back here.")
     finally:
+        if early_loader is not None:
+            try:
+                levilamina.cleanup()
+            except Exception as cleanup_error:
+                warn("Could not clean LeviLamina staging safely (%s)." %
+                     cleanup_error)
         stopping = supervision.stop_requested_for() is not None
         # First: the teardown below can take a while, and nobody should be
         # left showing as in-game through it. When the launcher was asked to

@@ -100,7 +100,7 @@ WINEGDK_OUT = PROTON_DIR / "GDK-Proton-xuser"
 # match the reviewed pins below.
 WINEGDK_PREBUILT_REPO = "Wyze3306/BedrockOnLinux"
 # The commit alone does not identify vendored follow-up patches.
-WINEGDK_SOURCE_MANIFEST_SHA256 = "cc7c569a8938496eb42b0ce1446c82221a90dd65f03c79227061c879a6e8cbee"
+WINEGDK_SOURCE_MANIFEST_SHA256 = "7075998f346beb1dc29cfb843fe650870e49333690473bca1695fcb80bd8963f"
 WINEGDK_BUILD_REV = "wow64-archs-native21"
 # native21 carries the ntdll loader patches the Microsoft Store packages need:
 # 0007 maps the main image from a descriptor, 0008 from a path so it survives

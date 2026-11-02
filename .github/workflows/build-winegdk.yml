@@ -1,7 +1,7 @@
 # Tier 1: compile WineGDK from source and publish it as an independently
 # verifiable, attested artifact for the engine build to reuse.
 #
-# Source: https://github.com/Weather-OS/WineGDK (pinned commit fetched by SHA).
+# Source: https://github.com/Wyze3306/WineGDK (pinned commit fetched by SHA).
 # The build runs in a debian:bullseye container (glibc 2.31) via
 # scripts/build-winegdk-container.sh, instead of the debootstrap + unprivileged
 # user-namespace chroot, whose `unshare --setgid` path does not work on GitHub
@@ -64,7 +64,7 @@ jobs:
         run: |
           commit="$(grep -m1 '^WINEGDK_SOURCE_COMMIT = ' bol/config.py | cut -d'"' -f2)"
           git init -q /mnt/engine/WineGDK
-          git -C /mnt/engine/WineGDK remote add origin https://github.com/Weather-OS/WineGDK
+          git -C /mnt/engine/WineGDK remote add origin https://github.com/Wyze3306/WineGDK
           git -C /mnt/engine/WineGDK fetch --depth 1 origin "$commit"
           git -C /mnt/engine/WineGDK branch bol-target FETCH_HEAD
 

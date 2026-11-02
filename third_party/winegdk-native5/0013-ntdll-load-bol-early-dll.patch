@@ -1,0 +1,76 @@
+From: BedrockOnLinux contributors
+Subject: [PATCH] ntdll: load BOL_EARLY_DLL before the main entry point
+
+LeviLamina's PreLoader must be initialized during process startup.  Loading it
+through BedrockOnLinux's normal injector happens after Minecraft has entered
+its startup path and cannot establish the hooks LeviLamina needs.
+
+The launcher sets BOL_EARLY_DLL only for an opted-in Minecraft launch.  This
+patch reads that single variable after the ntdll and kernel32 process attaches,
+but before the mapped main image's dependencies and entry point are attached.
+An absent variable is a no-op, so ordinary Wine applications retain the normal
+loader behaviour.  A load failure terminates the process before the game starts
+and records both NTSTATUS and its Win32 error mapping in the Wine log.
+---
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -4415,6 +4415,44 @@ static void release_address_space(void)
+ #endif
+ }
+ 
++
++/******************************************************************
++ *              load_bol_early_dll
++ *
++ * BOL_EARLY_DLL is set only by BedrockOnLinux for its Minecraft launch. Load
++ * it after ntdll and kernel32 are attached, but before the main image's
++ * dependency graph and entry point are initialized. This is deliberately not
++ * a general-purpose preload facility.
++ */
++static NTSTATUS load_bol_early_dll(void)
++{
++    const char *utf8_path = getenv( "BOL_EARLY_DLL" );
++    UNICODE_STRING path;
++    HMODULE module;
++    ULONG size;
++    NTSTATUS status;
++
++    if (!utf8_path || !*utf8_path) return STATUS_SUCCESS;
++
++    if ((status = RtlUTF8ToUnicodeN( NULL, 0, &size, utf8_path, strlen( utf8_path ) )))
++        return status;
++    if (!(path.Buffer = RtlAllocateHeap( GetProcessHeap(), 0, size + sizeof(WCHAR) )))
++        return STATUS_NO_MEMORY;
++
++    path.Length = size;
++    path.MaximumLength = size + sizeof(WCHAR);
++    status = RtlUTF8ToUnicodeN( path.Buffer, path.Length, &size, utf8_path, strlen( utf8_path ) );
++    if (!status)
++    {
++        path.Length = size;
++        path.Buffer[size / sizeof(WCHAR)] = 0;
++        status = LdrLoadDll( NULL, 0, &path, &module );
++    }
++    RtlFreeHeap( GetProcessHeap(), 0, path.Buffer );
++    return status;
++}
++
++
+ /******************************************************************
+  *		loader_init
+  *
+@@ -4547,6 +4585,13 @@ void loader_init( CONTEXT *context, void **entry )
+             NtTerminateProcess( GetCurrentProcess(), status );
+         }
+ 
++        if ((status = load_bol_early_dll()))
++        {
++            ERR( "could not load BOL_EARLY_DLL, status %lx (Win32 error %lu)\\n",
++                 status, RtlNtStatusToDosError( status ) );
++            NtTerminateProcess( GetCurrentProcess(), status );
++        }
++
+         if ((status = walk_node_dependencies( wm->ldr.DdagNode, context, process_attach )))
+         {
+             if (last_failed_modref)

@@ -36,7 +36,7 @@ SHA-256 yourself.
 |---|---|---|---|
 | OpenSSL-XCurl set | `build-xcurl.yml` | msys2 MinGW curl closure (pinned in `third_party/xcurl-msys2.lock`) + `src/xcurl-cashim.c` + `src/cryptbase-stub.c` | `OPENSSL_XCURL_ARCHIVE_SHA256` |
 | vkd3d-proton | `build-vkd3d.yml` | `HansKristian-Work/vkd3d-proton`, pinned Debian 13 (Trixie) mingw toolchain | `third_party/vkd3d-proton-universal/OUTPUT-SHA256SUMS` |
-| WineGDK | `build-winegdk.yml` | `Weather-OS/WineGDK` (pinned commit), Debian 11 (Bullseye) container | packed-prefix hash |
+| WineGDK | `build-winegdk.yml` | `Wyze3306/WineGDK` (pinned commit), Debian 11 (Bullseye) container | packed-prefix hash |
 | Managed engine | `build-engine.yml` | public base + WineGDK + vkd3d | `WINEGDK_ARCHIVE_SHA256` |
 | xodus-cli | `build-xodus.yml` | `xodus-gaming/xodus` (pinned commit), Debian 13 (Trixie) container | `XODUS_ARCHIVE_SHA256` |
 | WebKitGTK runtime | `build-xodus.yml` | the WebKitGTK/GTK closure of that binary, Trixie at `XODUS_WEBVIEW_SNAPSHOT` | `XODUS_WEBVIEW_SHA256` |

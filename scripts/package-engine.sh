@@ -82,6 +82,7 @@ if [[ -n "$WINEGDK_PREFIX" ]]; then
         || ! -x "$WINEGDK_PREFIX/bin/wineserver" \
         || ! -f "$WINEGDK_PREFIX/lib/wine/x86_64-windows/xgameruntime.dll" \
         || ! -f "$WINEGDK_PREFIX/lib/wine/i386-windows/xgameruntime.dll" \
+        || ! -f "$WINEGDK_PREFIX/.bol-early-loader" \
         || ! -f "$WINEGDK_PREFIX/.bol-winegdk-build.env" \
         || ! -f "$WINEGDK_PREFIX/.bol-winegdk-package-versions.tsv" ]]; then
     echo "!! the fifth argument is not a complete WineGDK build prefix:" >&2
@@ -326,6 +327,7 @@ WINEGDK_NATIVE_PROVENANCE_FILES=(
   0010-windows.storage-implement-the-file-save-picker.patch
   0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-listener.patch
   0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch
+  0013-ntdll-load-bol-early-dll.patch
 )
 
 verify_sha256() {
@@ -378,7 +380,7 @@ verify_winegdk_source_provenance() {
     "e15f91396351a13de5f3bae93d7fc9595cd3a3af60bf93a4c153f2b481db7bd6" \
     "WineGDK native5 source-delta README"
   verify_sha256 "$native_root/SOURCE-SHA256SUMS" \
-    "cc7c569a8938496eb42b0ce1446c82221a90dd65f03c79227061c879a6e8cbee" \
+    "7075998f346beb1dc29cfb843fe650870e49333690473bca1695fcb80bd8963f" \
     "WineGDK native5 source hash lock"
   verify_sha256 \
     "$native_root/0001-winegdk-native5-Xbox-and-file-picker-runtime.patch" \
@@ -428,6 +430,10 @@ verify_winegdk_source_provenance() {
     "$native_root/0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch" \
     "d43c0f2cf32b624bb12d6db890d6f9a3a45e72523837310d868bec78318f59ce" \
     "WineGDK Gaming Services version"
+  verify_sha256 \
+    "$native_root/0013-ntdll-load-bol-early-dll.patch" \
+    "104674a86df89e54c5a06e1b54537dab39efbdd29bbbc6ca053de86f9307ac37" \
+    "WineGDK BOL early-loader hook"
 }
 
 has_marker() {
@@ -916,6 +922,7 @@ for relative_root, names in (
         "native5/0010-windows.storage-implement-the-file-save-picker.patch",
         "native5/0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-listener.patch",
         "native5/0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch",
+        "native5/0013-ntdll-load-bol-early-dll.patch",
     )),
     (gdk_proton_provenance_root, ("provenance.env",)),
 ):

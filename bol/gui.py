@@ -3510,6 +3510,29 @@ class MainWindow(QMainWindow):
 
         self._update_injector_settings_ui()
 
+        levi_sec = card_section(
+            v, "LeviLamina early loader",
+            "Experimental: loads PreLoader before Minecraft starts. Only for "
+            "Minecraft 1.26.51.1 and a WineGDK engine built with the early-loader patch.")
+        self.levilamina_switch = self._switch(
+            "Enable LeviLamina early loading",
+            self.settings.get("levilamina_enabled", False),
+            "Stages a validated PreLoader + LeviLamina package for this launch only.")
+        self.levilamina_switch.toggled.connect(
+            lambda on: self._save_setting("levilamina_enabled", on))
+        levi_sec.addWidget(self.levilamina_switch)
+        levi_layout = QHBoxLayout()
+        self.levilamina_path = QLineEdit(
+            self.settings.get("levilamina_package_path", ""))
+        self.levilamina_path.setPlaceholderText("Folder containing PreLoader.dll and mods/LeviLamina")
+        self.levilamina_path.textChanged.connect(
+            lambda value: self._save_setting("levilamina_package_path", value))
+        levi_layout.addWidget(self.levilamina_path)
+        levi_layout.addWidget(btn("Browse…", self._do_browse_levilamina,
+                                  kind="ghost", w=84, h=32,
+                                  tip="Select the unpacked LeviLamina package folder."))
+        levi_sec.addLayout(levi_layout)
+
         editor = card_section(
             v, "Bedrock Editor",
             "Mojang's world-building tool, part of the game you already have: "
@@ -3751,6 +3774,14 @@ class MainWindow(QMainWindow):
             self.dll_input.setPlaceholderText("https://example.com/client.dll")
         else:
             self.dll_input.setPlaceholderText("Path to client.dll")
+
+    def _do_browse_levilamina(self):
+        initial = self.settings.get("levilamina_package_path") or ""
+        folder = QFileDialog.getExistingDirectory(
+            self, "Choose LeviLamina package folder", initial)
+        if folder:
+            self.levilamina_path.setText(folder)
+            self._save_setting("levilamina_package_path", folder)
 
     def _do_create_profile_shortcut(self):
         name, ok = QInputDialog.getText(self, "Create account profile",
