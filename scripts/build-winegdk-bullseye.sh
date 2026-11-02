@@ -176,6 +176,7 @@ mount_chroot_runtime() {
 internal_foreign_stage() {
   local work_root="$1"
   local rootfs="$work_root/rootfs"
+  local debootstrap_dir=""
 
   assert_internal_namespace
   mkdir -p -- "$rootfs" "$work_root/cache/debootstrap" \
@@ -184,7 +185,20 @@ internal_foreign_stage() {
   export TMPDIR="$work_root/tmp"
   export XDG_CACHE_HOME="$work_root/cache"
 
-  debootstrap \
+  # On Arch-family hosts without dpkg, debootstrap asks pacman-conf for the
+  # host architecture. CachyOS reports CPU feature levels as additional
+  # values (x86_64_v2/x86_64_v3), which debootstrap mistakes for an unknown
+  # architecture even though --arch=amd64 below is explicit. Supply its own
+  # architecture marker without changing host files or the target rootfs.
+  if ! command -v dpkg >/dev/null 2>&1 && command -v pacman-conf >/dev/null 2>&1; then
+    debootstrap_dir="$work_root/debootstrap-config"
+    mkdir -p -- "$debootstrap_dir"
+    ln -sfn /usr/share/debootstrap/functions "$debootstrap_dir/functions"
+    ln -sfn /usr/share/debootstrap/scripts "$debootstrap_dir/scripts"
+    printf 'amd64\n' > "$debootstrap_dir/arch"
+  fi
+
+  DEBOOTSTRAP_DIR="$debootstrap_dir" debootstrap \
     --arch=amd64 \
     --variant=minbase \
     --foreign \
