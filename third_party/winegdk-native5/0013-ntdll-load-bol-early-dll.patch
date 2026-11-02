@@ -15,7 +15,7 @@ and records both NTSTATUS and its Win32 error mapping in the Wine log.
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
-@@ -4415,6 +4415,44 @@ static void release_address_space(void)
+@@ -4415,6 +4415,30 @@ static void release_address_space(void)
  #endif
  }
  
@@ -30,28 +30,14 @@ diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
 + */
 +static NTSTATUS load_bol_early_dll(void)
 +{
-+    const char *utf8_path = getenv( "BOL_EARLY_DLL" );
 +    UNICODE_STRING path;
 +    HMODULE module;
-+    ULONG size;
 +    NTSTATUS status;
 +
-+    if (!utf8_path || !*utf8_path) return STATUS_SUCCESS;
++    if ((status = get_env_var( L"BOL_EARLY_DLL", 0, &path )))
++        return status == STATUS_VARIABLE_NOT_FOUND ? STATUS_SUCCESS : status;
 +
-+    if ((status = RtlUTF8ToUnicodeN( NULL, 0, &size, utf8_path, strlen( utf8_path ) )))
-+        return status;
-+    if (!(path.Buffer = RtlAllocateHeap( GetProcessHeap(), 0, size + sizeof(WCHAR) )))
-+        return STATUS_NO_MEMORY;
-+
-+    path.Length = size;
-+    path.MaximumLength = size + sizeof(WCHAR);
-+    status = RtlUTF8ToUnicodeN( path.Buffer, path.Length, &size, utf8_path, strlen( utf8_path ) );
-+    if (!status)
-+    {
-+        path.Length = size;
-+        path.Buffer[size / sizeof(WCHAR)] = 0;
-+        status = LdrLoadDll( NULL, 0, &path, &module );
-+    }
++    status = LdrLoadDll( NULL, 0, &path, &module );
 +    RtlFreeHeap( GetProcessHeap(), 0, path.Buffer );
 +    return status;
 +}

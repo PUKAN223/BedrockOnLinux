@@ -380,7 +380,7 @@ verify_winegdk_source_provenance() {
     "e15f91396351a13de5f3bae93d7fc9595cd3a3af60bf93a4c153f2b481db7bd6" \
     "WineGDK native5 source-delta README"
   verify_sha256 "$native_root/SOURCE-SHA256SUMS" \
-    "7075998f346beb1dc29cfb843fe650870e49333690473bca1695fcb80bd8963f" \
+    "bfeb09b592835b1731cf8657e6189450339dca70046f756745e022dd66fb1c6c" \
     "WineGDK native5 source hash lock"
   verify_sha256 \
     "$native_root/0001-winegdk-native5-Xbox-and-file-picker-runtime.patch" \
@@ -432,7 +432,7 @@ verify_winegdk_source_provenance() {
     "WineGDK Gaming Services version"
   verify_sha256 \
     "$native_root/0013-ntdll-load-bol-early-dll.patch" \
-    "104674a86df89e54c5a06e1b54537dab39efbdd29bbbc6ca053de86f9307ac37" \
+    "b759d3b1a161df5f650252f3a0698920990a271170674edb7bd2a8fd95dfe898" \
     "WineGDK BOL early-loader hook"
 }
 
